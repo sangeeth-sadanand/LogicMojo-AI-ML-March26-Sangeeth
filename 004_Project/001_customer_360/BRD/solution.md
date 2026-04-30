@@ -225,14 +225,42 @@ erDiagram
 
 ## Feature Engineering
 
-Create meaningful features such as:
+### 1. Core Transactional (RFM) Features
 
-- Total order value (aggregated from order_items or payments) 
-- Delivery time (order purchase to delivery date) 
-- Number of items per order 
-- Customer purchase frequency 
-- Customer lifetime value (basic approximation) 
-- Average order value per customer 
+*Source: `order_id`, `order_purchase_timestamp`, `payment_value`*
+
+- **Recency:** `Current_Date - max(order_purchase_timestamp)`. (How fresh is the customer?)
+- **Frequency:** `count(distinct order_id)`. (How loyal are they?)
+- **Monetary (LTV):** `sum(payment_value)`. (How valuable are they?)
+- **Average Ticket Size:** `sum(payment_value) / count(distinct order_id)`.
+
+### 2. Logistic & Experience Features
+
+*Source: `order_delivered_customer_date`, `order_estimated_delivery_date`, `review_score`*
+
+- **Delivery Delay:** `order_delivered_customer_date - order_estimated_delivery_date`. (Positive values indicate late deliveries, a primary churn driver).
+- **Average Review Score:** `mean(review_score)`. (A direct proxy for customer satisfaction).
+- **Review Propensity:** `count(review_id) / count(order_id)`. (Does this customer engage with the feedback loop?).
+- **Freight Ratio:** `sum(freight_value) / sum(payment_value)`. (High ratios often lead to cart abandonment in the future).
+
+## 3. Product & Diversity Features
+
+*Source: `product_category_name_english`, `product_id`, `payment_type`*
+
+- **Category Affinity:** The `mode` or most frequent `product_category_name_english`.
+- **Breadth of Interest:** `count(distinct product_category_name_english)`. (Does the customer only buy electronics, or do they explore?).
+- **Installment User:** `mean(payment_installments)`. (High installments often indicate high-value, price-sensitive shoppers).
+- **Preferred Payment Method:** `mode(payment_type)`. (Credit card vs. boleto/voucher).
+
+------
+
+### 4. Geographic & Seller Relationship
+
+*Source: `customer_state`, `seller_id`, `product_weight_g`*
+
+- 
+- **Seller Loyalty:** `count(distinct seller_id) / count(order_id)`. (A low ratio means they keep returning to the same sellers).
+- **Heavy Goods Buyer:** `mean(product_weight_g)`. (Useful for shipping-related promotions).
 
 ## Exploratory Data Analysis (EDA)
 
